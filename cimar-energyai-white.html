@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIMAR EnergyAI — Operational Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #f4f7f4;
+  --bg2: #ffffff;
+  --bg3: #ffffff;
+  --bg4: #f0f5f1;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --text: #111c14;
+  --text2: #4a6350;
+  --text3: #7a9680;
+  --blue: #1a7a3c;
+  --blue2: #15622f;
+  --blue-dim: rgba(26,122,60,0.1);
+  --green: #16a34a;
+  --green-dim: rgba(22,163,74,0.1);
+  --amber: #b45309;
+  --amber-dim: rgba(180,83,9,0.1);
+  --red: #dc2626;
+  --red-dim: rgba(220,38,38,0.08);
+  --purple: #6d7c47;
+  --purple-dim: rgba(109,124,71,0.12);
+  --cyan: #0f766e;
+  --cyan-dim: rgba(15,118,110,0.1);
+  --sidebar-w: 230px;
+  --font: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-serif: 'Playfair Display', serif;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+
+/* ── LAYOUT ── */
+.app { display: flex; height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  background: #1a4d2e; border-right: 1px solid rgba(0,0,0,0.1);
+  display: flex; flex-direction: column; overflow: hidden;
+  position: relative;
+}
+.sidebar::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #4ade80, transparent);
+}
+.sidebar-head {
+  padding: 22px 20px 18px; border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.sidebar-logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.logo-mark {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: linear-gradient(135deg, #16a34a, #4ade80);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: #fff; letter-spacing: -0.5px;
+  flex-shrink: 0;
+}
+.logo-text .brand { font-size: 13px; font-weight: 600; color: #fff; }
+.logo-text .sub { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+.mode-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3);
+  color: #4ade80; font-size: 10px; font-weight: 500; padding: 4px 9px;
+  border-radius: 20px; cursor: pointer; transition: all 0.2s;
+}
+.mode-badge:hover { background: rgba(74,222,128,0.25); }
+.mode-badge .pulse { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.nav-group { padding: 8px 0; }
+.nav-label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.35); letter-spacing: 1.2px; text-transform: uppercase; padding: 10px 20px 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 14px 9px 20px;
+  margin: 1px 8px; border-radius: var(--radius-sm); cursor: pointer;
+  color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 400;
+  transition: all 0.15s; position: relative;
+}
+.nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-item.active { background: rgba(74,222,128,0.15); color: #4ade80; }
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+  width: 3px; border-radius: 0 3px 3px 0; background: #4ade80;
+}
+.nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active .nav-icon { opacity: 1; }
+.nav-item .nav-name { flex: 1; }
+.nav-count {
+  font-size: 10px; background: var(--amber-dim); color: var(--amber);
+  padding: 2px 7px; border-radius: 10px; font-weight: 500;
+}
+.nav-count.alert { background: var(--red-dim); color: var(--red); }
+
+.sidebar-footer {
+  margin-top: auto; padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.sys-status { display: flex; align-items: center; gap: 7px; font-size: 11px; color: rgba(255,255,255,0.6); }
+.sys-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+.sys-meta { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 3px; font-family: var(--font-mono); }
+
+/* ── MAIN ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── TOPBAR ── */
+.topbar {
+  background: #ffffff; border-bottom: 1px solid var(--border);
+  padding: 0 28px; height: 58px; display: flex; align-items: center; gap: 16px;
+  flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.topbar-title { font-size: 15px; font-weight: 500; color: var(--text); flex: 1; }
+.topbar-title span { color: var(--text3); font-weight: 400; font-size: 13px; margin-left: 8px; }
+.topbar-chip {
+  display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+  border: 1px solid var(--border2); border-radius: var(--radius-sm);
+  font-size: 12px; color: var(--text2); background: #ffffff; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.topbar-chip:hover { border-color: var(--border2); color: var(--text); }
+.topbar-time { font-family: var(--font-mono); font-size: 12px; color: var(--text3); }
+.live-pill {
+  display: flex; align-items: center; gap: 5px; padding: 5px 11px;
+  background: var(--green-dim); border: 1px solid rgba(34,214,122,0.2);
+  border-radius: 20px; font-size: 11px; color: var(--green); font-weight: 500;
+}
+
+/* ── PAGE ── */
+.page { display: none; flex: 1; overflow-y: auto; padding: 24px 28px; flex-direction: column; gap: 20px; }
+.page.active { display: flex; }
+
+/* ── SECTION TITLE ── */
+.section-title { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+
+/* ── KPI STRIP ── */
+.kpi-strip { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+.kpi {
+  background: #ffffff; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 18px 16px;
+  cursor: pointer; transition: border-color 0.2s, transform 0.15s;
+  position: relative; overflow: hidden;
+}
+.kpi:hover { border-color: var(--border2); transform: translateY(-1px); }
+.kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; border-radius: 0 0 var(--radius) var(--radius); }
+.kpi.c-blue::after { background: var(--blue); }
+.kpi.c-green::after { background: var(--green); }
+.kpi.c-amber::after { background: var(--amber); }
+.kpi.c-purple::after { background: var(--purple); }
+.kpi-lbl { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+.kpi-val { font-size: 26px; font-weight: 500; line-height: 1; color: var(--text); }
+.kpi-val sub { font-size: 13px; font-weight: 400; color: var(--text2); margin-left: 2px; }
+.kpi-delta { font-size: 11px; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+.delta-up { color: var(--green); } .delta-down { color: var(--red); } .delta-neutral { color: var(--text3); }
+.kpi-track { height: 2px; background: rgba(0,0,0,0.07); border-radius: 2px; margin-top: 12px; }
+.kpi-track-fill { height: 100%; border-radius: 2px; }
+
+/* ── GRID LAYOUTS ── */
+.grid-60-40 { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+
+/* ── CARD ── */
+.card {
+  background: #ffffff; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; overflow: hidden;
+}
+.card-hd { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; gap: 10px; }
+.card-ttl { font-size: 13px; font-weight: 500; color: var(--text); }
+.card-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.tag { font-size: 10px; font-weight: 500; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.tag.green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,214,122,0.2); }
+.tag.blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,127,255,0.2); }
+.tag.amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+.tag.red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,77,0.2); }
+.tag.purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+.tag.gray { background: rgba(0,0,0,0.06); color: var(--text2); border: 1px solid var(--border); }
+
+/* ── KILN PARAMS ── */
+.param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.param-big {
+  background: #f0f5f1; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px;
+}
+.param-big-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
+.param-big-val { font-size: 24px; font-weight: 500; color: var(--text); margin-top: 4px; line-height: 1; }
+.param-big-ok { font-size: 10px; color: var(--green); margin-top: 4px; }
+.param-row { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.param-row:last-child { border-bottom: none; padding-bottom: 0; }
+.param-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.param-name { font-size: 12px; color: var(--text2); flex: 1; }
+.param-val { font-size: 12px; font-family: var(--font-mono); color: var(--text); min-width: 80px; text-align: right; }
+.param-ai-badge { font-size: 10px; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+.p-ok { background: var(--green-dim); color: var(--green); }
+.p-warn { background: var(--amber-dim); color: var(--amber); }
+.p-act { background: var(--blue-dim); color: var(--blue); }
+
+/* ── AI RECOMMENDATIONS ── */
+.rec {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 0; border-bottom: 1px solid var(--border);
+}
+.rec:last-child { border-bottom: none; padding-bottom: 0; }
+.rec-ico {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.rec-body { flex: 1; min-width: 0; }
+.rec-ttl { font-size: 12px; font-weight: 500; color: var(--text); }
+.rec-desc { font-size: 11px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
+.rec-saving { font-size: 10px; color: var(--green); margin-top: 4px; font-weight: 500; }
+.rec-btns { display: flex; gap: 6px; margin-top: 8px; }
+.btn-apply {
+  font-size: 11px; font-weight: 500; padding: 5px 12px; border-radius: 7px;
+  border: 1px solid rgba(34,214,122,0.3); background: var(--green-dim);
+  color: var(--green); cursor: pointer; font-family: var(--font);
+  transition: all 0.15s;
+}
+.btn-apply:hover { background: rgba(34,214,122,0.22); }
+.btn-skip {
+  font-size: 11px; padding: 5px 12px; border-radius: 7px;
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--text2); cursor: pointer; font-family: var(--font);
+  transition: all 0.15s;
+}
+.btn-skip:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+.btn-applied {
+  font-size: 11px; font-weight: 500; padding: 5px 12px; border-radius: 7px;
+  border: 1px solid rgba(34,214,122,0.3); background: var(--green-dim);
+  color: var(--green); font-family: var(--font); opacity: 0.6;
+}
+
+/* ── PLANT LIST ── */
+.plant-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.plant-row:last-child { border-bottom: none; padding-bottom: 0; }
+.plant-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.plant-info { flex: 1; }
+.plant-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.plant-meta { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.plant-right { text-align: right; }
+.plant-eff { font-size: 14px; font-weight: 500; }
+.mini-bar { width: 56px; height: 3px; background: rgba(0,0,0,0.07); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+.mini-fill { height: 100%; border-radius: 2px; }
+
+/* ── ENERGY MIX ── */
+.emix-bar { display: flex; height: 6px; border-radius: 4px; overflow: hidden; margin: 12px 0 10px; }
+.emix-seg { height: 100%; }
+.emix-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.emix-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); }
+.emix-dot { width: 7px; height: 7px; border-radius: 2px; }
+
+/* ── MAINTENANCE ── */
+.maint-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.maint-row:last-child { border-bottom: none; padding-bottom: 0; }
+.maint-ico { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+.maint-body { flex: 1; }
+.maint-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.maint-loc { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.maint-days { font-size: 12px; font-weight: 500; white-space: nowrap; font-family: var(--font-mono); }
+
+/* ── SAVINGS ── */
+.savings-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.saving-cell { background: #f0f5f1; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; }
+.saving-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+.saving-val { font-size: 20px; font-weight: 500; color: var(--text); }
+.saving-sub { font-size: 10px; color: var(--green); margin-top: 4px; }
+
+/* ── CHART WRAP ── */
+.chart-wrap { position: relative; width: 100%; }
+
+/* ── KILN PAGE ── */
+.temp-display {
+  background: #f0f5f1; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.temp-display::before {
+  content: ''; position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 60px; background: radial-gradient(ellipse, rgba(255,77,77,0.25), transparent 70%);
+  border-radius: 50%;
+}
+.temp-big { font-size: 52px; font-weight: 300; font-family: var(--font-mono); color: #ff8a65; line-height: 1; }
+.temp-target { font-size: 12px; color: var(--text3); margin-top: 6px; }
+
+.gauge-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-top: 14px; }
+.gauge-cell { background: #f0f5f1; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.gauge-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+.gauge-val { font-size: 18px; font-weight: 500; color: var(--text); font-family: var(--font-mono); margin: 4px 0; }
+.gauge-status { font-size: 10px; }
+
+/* ── MAINTENANCE PAGE ── */
+.maint-card {
+  background: #ffffff; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.maint-card:hover { border-color: var(--border2); }
+.maint-card-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.maint-card-ttl { font-size: 13px; font-weight: 500; color: var(--text); }
+.maint-card-loc { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.rul-bar { height: 4px; background: rgba(0,0,0,0.07); border-radius: 3px; overflow: hidden; margin: 10px 0 6px; }
+.rul-fill { height: 100%; border-radius: 3px; }
+.rul-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); }
+.sensor-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-top: 12px; }
+.sensor-cell { background: #f0f5f1; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; }
+.sensor-lbl { font-size: 10px; color: var(--text3); }
+.sensor-val { font-size: 14px; font-weight: 500; color: var(--text); font-family: var(--font-mono); margin-top: 3px; }
+
+/* ── RENEWABLE PAGE ── */
+.forecast-bar { display: flex; align-items: flex-end; gap: 4px; height: 80px; margin: 16px 0 8px; }
+.fc-col { flex: 1; border-radius: 4px 4px 0 0; min-width: 0; transition: opacity 0.2s; cursor: pointer; }
+.fc-col:hover { opacity: 0.8; }
+.fc-labels { display: flex; gap: 4px; }
+.fc-lbl { flex: 1; font-size: 9px; color: var(--text3); text-align: center; font-family: var(--font-mono); }
+
+.schedule-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.schedule-row:last-child { border-bottom: none; }
+.schedule-time { font-size: 11px; font-family: var(--font-mono); color: var(--text3); min-width: 80px; }
+.schedule-bar-wrap { flex: 1; height: 4px; background: rgba(0,0,0,0.07); border-radius: 3px; }
+.schedule-bar-fill { height: 100%; border-radius: 3px; }
+.schedule-action { font-size: 11px; color: var(--text2); min-width: 90px; text-align: right; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.page.active > * { animation: fadeIn 0.3s ease both; }
+.page.active > *:nth-child(1) { animation-delay: 0.03s; }
+.page.active > *:nth-child(2) { animation-delay: 0.07s; }
+.page.active > *:nth-child(3) { animation-delay: 0.11s; }
+.page.active > *:nth-child(4) { animation-delay: 0.15s; }
+.page.active > *:nth-child(5) { animation-delay: 0.19s; }
+
+@keyframes countUp { from { opacity:0; } to { opacity:1; } }
+.kpi-val { animation: countUp 0.5s ease; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-logo-row">
+      <div class="logo-mark">C</div>
+      <div class="logo-text">
+        <div class="brand">CIMAR EnergyAI</div>
+        <div class="sub">Operational Intelligence</div>
+      </div>
+    </div>
+    <div class="mode-badge" onclick="showModeInfo()">
+      <div class="pulse"></div> Advisory Mode Active
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="navigate('dashboard', this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/></svg>
+        <span class="nav-name">Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="navigate('recommendations', this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span class="nav-name">AI Recommendations</span>
+        <span class="nav-count" id="rec-count">4</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">AI Modules</div>
+      <div class="nav-item" onclick="navigate('kiln', this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 14V6l6-4 6 4v8" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><rect x="5" y="9" width="6" height="5" rx="0.5" stroke="currentColor" stroke-width="1.2"/></svg>
+        <span class="nav-name">Kiln Optimizer</span>
+      </div>
+      <div class="nav-item" onclick="navigate('grinding', this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M8 2.5v1M8 12.5v1M2.5 8h1M12.5 8h1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span class="nav-name">Mill Optimizer</span>
+      </div>
+      <div class="nav-item" onclick="navigate('maintenance', this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M10.5 2a3 3 0 00-2.8 4L2.5 11.2A1.5 1.5 0 004.8 13.5L10 8.3A3 3 0 1010.5 2z" stroke="currentColor" stroke-width="1.2"/></svg>
+        <span class="nav-name">Predictive Maintenance</span>
+        <span class="nav-count alert">2</span>
+      </div>
+      <div class="nav-item" onclick="navigate('renewable', this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2v3M8 11v3M2 8h3M11 8h3M3.5 3.5l2 2M10.5 10.5l2 2M10.5 3.5l-2 2M5.5 10.5l-2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/></svg>
+        <span class="nav-name">Renewable Scheduler</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Reports</div>
+      <div class="nav-item" onclick="navigate('savings', this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 12l4-4 3 3 5-7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="nav-name">Savings Report</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sys-status"><div class="sys-dot"></div> All 4 plants online</div>
+    <div class="sys-meta">Last sync: just now · 847 sensors</div>
+  </div>
+</aside>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-title" id="page-title">
+      Live Overview <span id="page-sub">— Ait Baha · Safi · Mzoudia · Témara</span>
+    </div>
+    <div class="topbar-chip">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1a5 5 0 100 10A5 5 0 006 1zM6 3v3l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <span id="clock">18 Mar 2026 · 14:32:05</span>
+    </div>
+    <div class="topbar-chip" onclick="cyclePlant()">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1l1.5 3.5H11L8.5 6.8l1 3.7L6 8.5 2.5 10.5l1-3.7L1 4.5h3.5z" stroke="currentColor" stroke-width="1.1"/></svg>
+      <span id="active-plant">All Plants</span>
+    </div>
+    <div class="live-pill">
+      <div class="pulse" style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite;"></div>
+      LIVE
+    </div>
+  </header>
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <section class="page active" id="page-dashboard">
+
+    <div class="kpi-strip">
+      <div class="kpi c-blue" onclick="navigate('kiln', document.querySelector('[onclick*=kiln]'))">
+        <div class="kpi-lbl">Heat consumption</div>
+        <div class="kpi-val"><span id="kv-heat">724</span><sub>kcal/kg</sub></div>
+        <div class="kpi-delta delta-up">↓ 11.2% vs baseline · AI saving 18.4M DH/yr</div>
+        <div class="kpi-track"><div class="kpi-track-fill" style="width:72%;background:var(--blue)"></div></div>
+      </div>
+      <div class="kpi c-green" onclick="navigate('grinding', document.querySelectorAll('.nav-item')[4])">
+        <div class="kpi-lbl">Grinding electricity</div>
+        <div class="kpi-val"><span id="kv-elec">31.4</span><sub>kWh/t</sub></div>
+        <div class="kpi-delta delta-up">↓ 14.5% vs baseline · saving 11.2M DH/yr</div>
+        <div class="kpi-track"><div class="kpi-track-fill" style="width:78%;background:var(--green)"></div></div>
+      </div>
+      <div class="kpi c-amber" onclick="navigate('renewable', document.querySelectorAll('.nav-item')[5])">
+        <div class="kpi-lbl">Alt. fuel rate (TSR)</div>
+        <div class="kpi-val"><span id="kv-tsr">28.3</span><sub>%</sub></div>
+        <div class="kpi-delta delta-up">↑ from 17% baseline · petcoke displaced</div>
+        <div class="kpi-track"><div class="kpi-track-fill" style="width:56%;background:var(--amber)"></div></div>
+      </div>
+      <div class="kpi c-purple">
+        <div class="kpi-lbl">CO₂ intensity</div>
+        <div class="kpi-val"><span id="kv-co2">581</span><sub>kg/t</sub></div>
+        <div class="kpi-delta delta-up">↓ 9.8% · on track for 2030 target</div>
+        <div class="kpi-track"><div class="kpi-track-fill" style="width:60%;background:var(--purple)"></div></div>
+      </div>
+    </div>
+
+    <div class="grid-60-40">
+      <!-- ENERGY CHART -->
+      <div class="card">
+        <div class="card-hd">
+          <div><div class="card-ttl">Energy consumption — last 24 hours</div><div class="card-sub">Petcoke equivalent · all plants</div></div>
+          <span class="tag green">AI optimizing</span>
+        </div>
+        <div class="chart-wrap" style="height:180px"><canvas id="energyChart"></canvas></div>
+      </div>
+
+      <!-- AI RECS SUMMARY -->
+      <div class="card">
+        <div class="card-hd">
+          <div><div class="card-ttl">AI Recommendations</div><div class="card-sub">Pending operator approval</div></div>
+          <span class="tag amber" id="rec-tag">4 pending</span>
+        </div>
+        <div class="rec" id="rec-0">
+          <div class="rec-ico" style="background:var(--red-dim)">🔥</div>
+          <div class="rec-body">
+            <div class="rec-ttl">Reduce fuel feed — Kiln 1, Ait Baha</div>
+            <div class="rec-saving">Est. saving: 180 DH/hr · O₂ trending high</div>
+            <div class="rec-btns">
+              <button class="btn-apply" onclick="applyRec(0)">Apply</button>
+              <button class="btn-skip" onclick="skipRec(0)">Skip</button>
+            </div>
+          </div>
+        </div>
+        <div class="rec" id="rec-1">
+          <div class="rec-ico" style="background:var(--purple-dim)">⚙️</div>
+          <div class="rec-body">
+            <div class="rec-ttl">Increase kiln speed 0.1 rpm — Kiln 1</div>
+            <div class="rec-saving">Low feed hardness detected · +2.3% throughput</div>
+            <div class="rec-btns">
+              <button class="btn-apply" onclick="applyRec(1)">Apply</button>
+              <button class="btn-skip" onclick="skipRec(1)">Skip</button>
+            </div>
+          </div>
+        </div>
+        <div class="rec" id="rec-2">
+          <div class="rec-ico" style="background:var(--green-dim)">⚡</div>
+          <div class="rec-body">
+            <div class="rec-ttl">Shift Mill 2 to off-peak window tonight</div>
+            <div class="rec-saving">ONEE off-peak 23:00–02:00 · saves 14,200 DH</div>
+            <div class="rec-btns">
+              <button class="btn-apply" onclick="applyRec(2)">Apply</button>
+              <button class="btn-skip" onclick="skipRec(2)">Skip</button>
+            </div>
+          </div>
+        </div>
+        <div class="rec" id="rec-3">
+          <div class="rec-ico" style="background:var(--cyan-dim)">🔧</div>
+          <div class="rec-body">
+            <div class="rec-ttl">Inspect Mill 1 bearing — schedule in 12 days</div>
+            <div class="rec-saving">Vibration anomaly detected · prevents ~4.2M DH stop</div>
+            <div class="rec-btns">
+              <button class="btn-apply" onclick="applyRec(3)">Apply</button>
+              <button class="btn-skip" onclick="skipRec(3)">Skip</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <!-- PLANTS -->
+      <div class="card">
+        <div class="card-hd"><div><div class="card-ttl">All plants</div><div class="card-sub">Real-time AI efficiency score</div></div><span class="tag blue">4 active</span></div>
+        <div class="plant-row">
+          <div class="plant-dot" style="background:var(--green)"></div>
+          <div class="plant-info"><div class="plant-name">Ait Baha</div><div class="plant-meta">2.2 Mt/yr · Pilot plant · Phase 2</div></div>
+          <div class="plant-right"><div class="plant-eff" style="color:var(--green)">94%</div><div class="mini-bar"><div class="mini-fill" style="width:94%;background:var(--green)"></div></div></div>
+        </div>
+        <div class="plant-row">
+          <div class="plant-dot" style="background:var(--blue)"></div>
+          <div class="plant-info"><div class="plant-name">Safi</div><div class="plant-meta">1.4 Mt/yr · Phase 2</div></div>
+          <div class="plant-right"><div class="plant-eff" style="color:var(--blue)">88%</div><div class="mini-bar"><div class="mini-fill" style="width:88%;background:var(--blue)"></div></div></div>
+        </div>
+        <div class="plant-row">
+          <div class="plant-dot" style="background:var(--amber)"></div>
+          <div class="plant-info"><div class="plant-name">Mzoudia</div><div class="plant-meta">0.9 Mt/yr · Phase 1</div></div>
+          <div class="plant-right"><div class="plant-eff" style="color:var(--amber)">82%</div><div class="mini-bar"><div class="mini-fill" style="width:82%;background:var(--amber)"></div></div></div>
+        </div>
+        <div class="plant-row">
+          <div class="plant-dot" style="background:var(--purple)"></div>
+          <div class="plant-info"><div class="plant-name">Témara</div><div class="plant-meta">0.8 Mt/yr · Onboarding</div></div>
+          <div class="plant-right"><div class="plant-eff" style="color:var(--purple)">79%</div><div class="mini-bar"><div class="mini-fill" style="width:79%;background:var(--purple)"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ENERGY MIX -->
+      <div class="card">
+        <div class="card-hd"><div><div class="card-ttl">Energy mix today</div><div class="card-sub">Across all plants</div></div><span class="tag green">32% renewable</span></div>
+        <div class="emix-bar">
+          <div class="emix-seg" style="width:41%;background:#ef4444"></div>
+          <div class="emix-seg" style="width:27%;background:#f97316"></div>
+          <div class="emix-seg" style="width:16%;background:var(--green)"></div>
+          <div class="emix-seg" style="width:16%;background:var(--cyan)"></div>
+        </div>
+        <div class="emix-legend">
+          <div class="emix-item"><div class="emix-dot" style="background:#ef4444"></div>Petcoke 41%</div>
+          <div class="emix-item"><div class="emix-dot" style="background:#f97316"></div>Alt. fuels 27%</div>
+          <div class="emix-item"><div class="emix-dot" style="background:var(--green)"></div>Wind 16%</div>
+          <div class="emix-item"><div class="emix-dot" style="background:var(--cyan)"></div>Solar 16%</div>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">Tonight's wind forecast</div>
+          <div style="font-size:18px;font-weight:500;color:var(--text);font-family:var(--font-mono)">18–23 m/s</div>
+          <div style="font-size:11px;color:var(--green);margin-top:3px">Strong winds · heavy grinding scheduled 23:00–02:00</div>
+        </div>
+      </div>
+
+      <!-- MAINTENANCE ALERTS -->
+      <div class="card">
+        <div class="card-hd"><div><div class="card-ttl">Maintenance alerts</div><div class="card-sub">AI-predicted failures</div></div><span class="tag amber">2 upcoming</span></div>
+        <div class="maint-row">
+          <div class="maint-ico" style="background:var(--red-dim)">🔴</div>
+          <div class="maint-body"><div class="maint-name">Mill 1 — main bearing</div><div class="maint-loc">Ait Baha · Vibration signature anomaly</div></div>
+          <div class="maint-days" style="color:var(--red)">12d</div>
+        </div>
+        <div class="maint-row">
+          <div class="maint-ico" style="background:var(--amber-dim)">🟡</div>
+          <div class="maint-body"><div class="maint-name">Kiln 2 — refractory wear</div><div class="maint-loc">Safi · Shell temperature trending up</div></div>
+          <div class="maint-days" style="color:var(--amber)">28d</div>
+        </div>
+        <div class="maint-row">
+          <div class="maint-ico" style="background:var(--green-dim)">🟢</div>
+          <div class="maint-body"><div class="maint-name">Crusher liner replacement</div><div class="maint-loc">Ait Baha · Scheduled, no urgency</div></div>
+          <div class="maint-days" style="color:var(--green)">45d</div>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">
+          3 unplanned stops prevented this month · <span style="color:var(--green)">4.2M DH saved</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVINGS STRIP -->
+    <div class="card">
+      <div class="card-hd"><div class="card-ttl">Year-to-date AI impact — Q1 2026</div><span class="tag green">On track for 72M DH annual target</span></div>
+      <div class="savings-grid">
+        <div class="saving-cell"><div class="saving-lbl">Fuel savings (kiln)</div><div class="saving-val">18.4M DH</div><div class="saving-sub">↑ 11.2% vs same period</div></div>
+        <div class="saving-cell"><div class="saving-lbl">Electricity (mills)</div><div class="saving-val">11.2M DH</div><div class="saving-sub">↑ 14.5% efficiency gain</div></div>
+        <div class="saving-cell"><div class="saving-lbl">Maintenance avoided</div><div class="saving-val">6.8M DH</div><div class="saving-sub">3 unplanned stops prevented</div></div>
+        <div class="saving-cell" style="border-color:rgba(34,214,122,0.25)"><div class="saving-lbl">Total YTD savings</div><div class="saving-val" style="color:var(--green)">36.4M DH</div><div class="saving-sub">Payback tracking: 2.1 years</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ KILN PAGE ═══ -->
+  <section class="page" id="page-kiln">
+    <div class="grid-60-40">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-ttl">Kiln 1 — Live parameters</div><div class="card-sub">Rotary kiln · 72m · Ait Baha</div></div><span class="tag green">Optimal</span></div>
+        <div class="param-grid">
+          <div class="param-big">
+            <div class="param-big-lbl">Kiln temperature</div>
+            <div class="param-big-val" style="color:#16a34a" id="kiln-temp">1,447°C</div>
+            <div class="param-big-ok">Target: 1,445°C ✓</div>
+          </div>
+          <div class="param-big">
+            <div class="param-big-lbl">O₂ level</div>
+            <div class="param-big-val" style="color:var(--blue)" id="kiln-o2">2.1%</div>
+            <div class="param-big-ok">Ideal range 1.8–2.4% ✓</div>
+          </div>
+        </div>
+        <div class="param-row">
+          <div class="param-dot" style="background:var(--amber)"></div>
+          <div class="param-name">Fuel feed rate</div>
+          <div class="param-val" id="k-fuel">8.4 t/h</div>
+          <span class="param-ai-badge p-act">AI: reduce to 8.1 t/h</span>
+        </div>
+        <div class="param-row">
+          <div class="param-dot" style="background:var(--green)"></div>
+          <div class="param-name">Secondary air flow</div>
+          <div class="param-val">42,800 m³/h</div>
+          <span class="param-ai-badge p-ok">Optimal</span>
+        </div>
+        <div class="param-row">
+          <div class="param-dot" style="background:var(--amber)"></div>
+          <div class="param-name">Kiln rotation speed</div>
+          <div class="param-val">3.2 rpm</div>
+          <span class="param-ai-badge p-warn">AI: increase 0.1 rpm</span>
+        </div>
+        <div class="param-row">
+          <div class="param-dot" style="background:var(--green)"></div>
+          <div class="param-name">Preheater exit temperature</div>
+          <div class="param-val" id="k-preh">318°C</div>
+          <span class="param-ai-badge p-ok">Optimal</span>
+        </div>
+        <div class="param-row">
+          <div class="param-dot" style="background:var(--green)"></div>
+          <div class="param-name">Free lime in clinker</div>
+          <div class="param-val">1.3%</div>
+          <span class="param-ai-badge p-ok">Within spec ✓</span>
+        </div>
+        <div class="param-row">
+          <div class="param-dot" style="background:var(--green)"></div>
+          <div class="param-name">NOₓ emissions</div>
+          <div class="param-val">780 mg/Nm³</div>
+          <span class="param-ai-badge p-ok">Below limit</span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card" style="padding:18px">
+          <div class="card-hd" style="margin-bottom:12px"><div class="card-ttl">Heat consumption trend</div><span class="tag blue">Last 8h</span></div>
+          <div class="chart-wrap" style="height:130px"><canvas id="kilnChart"></canvas></div>
+        </div>
+        <div class="card" style="padding:18px">
+          <div class="card-hd" style="margin-bottom:12px"><div class="card-ttl">AI performance</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="text-align:center;padding:10px;background:#f0f5f1;border-radius:var(--radius-sm)">
+              <div style="font-size:22px;font-weight:500;color:var(--green)">94%</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:3px">Recommendation acceptance</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:#f0f5f1;border-radius:var(--radius-sm)">
+              <div style="font-size:22px;font-weight:500;color:var(--blue)">847</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:3px">Sensors monitored</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:#f0f5f1;border-radius:var(--radius-sm)">
+              <div style="font-size:22px;font-weight:500;color:var(--amber)">11.2%</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:3px">Fuel reduction achieved</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:#f0f5f1;border-radius:var(--radius-sm)">
+              <div style="font-size:22px;font-weight:500;color:var(--purple)">2.1s</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:3px">Avg. response time</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RECOMMENDATIONS PAGE ═══ -->
+  <section class="page" id="page-recommendations">
+    <div class="grid-60-40">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-ttl">All pending recommendations</div><div class="card-sub">AI-generated · awaiting operator approval</div></div><span class="tag amber" id="rec-tag2">4 pending</span></div>
+
+        <div class="rec" id="rec2-0">
+          <div class="rec-ico" style="background:var(--red-dim)">🔥</div>
+          <div class="rec-body">
+            <div class="rec-ttl">Reduce fuel feed by 0.3 t/h — Kiln 1, Ait Baha</div>
+            <div class="rec-desc">O₂ level is trending high at 2.1% — combustion is running rich. Material moisture is lower than usual. AI calculates 0.3 t/h reduction will maintain 1,445°C without quality impact.</div>
+            <div class="rec-saving">Est. saving: 180 DH/hr · Confidence: 96%</div>
+            <div class="rec-btns">
+              <button class="btn-apply" onclick="applyRec2(0)">Apply recommendation</button>
+              <button class="btn-skip" onclick="skipRec2(0)">Skip</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rec" id="rec2-1">
+          <div class="rec-ico" style="background:var(--purple-dim)">⚙️</div>
+          <div class="rec-body">
+            <div class="rec-ttl">Increase kiln speed to 3.3 rpm — Kiln 1, Ait Baha</div>
+            <div class="rec-desc">Feed hardness is 12% below average today. Faster rotation will improve clinker homogeneity and increase throughput by 2.3% without requiring additional fuel.</div>
+            <div class="rec-saving">Est. benefit: +2.3% throughput · Confidence: 91%</div>
+            <div class="rec-btns">
+              <button class="btn-apply" onclick="applyRec2(1)">Apply recommendation</button>
+              <button class="btn-skip" onclick="skipRec2(1)">Skip</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rec" id="rec2-2">
+          <div class="rec-ico" style="background:var(--green-dim)">⚡</div>
+          <div class="rec-body">
+            <div class="rec-ttl">Shift Mill 2 grinding to off-peak window — Ait Baha</div>
+            <div class="rec-desc">ONEE off-peak tariff window tonight 23:00–02:00. Wind forecast is 18–23 m/s. Delaying 800t of grinding operations saves significant electricity cost with no impact on tomorrow's production targets.</div>
+            <div class="rec-saving">Est. saving: 14,200 DH tonight · Confidence: 98%</div>
+            <div class="rec-btns">
+              <button class="btn-apply" onclick="applyRec2(2)">Schedule it</button>
+              <button class="btn-skip" onclick="skipRec2(2)">Skip</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rec" id="rec2-3">
+          <div class="rec-ico" style="background:var(--cyan-dim)">🔧</div>
+          <div class="rec-body">
+            <div class="rec-ttl">Schedule Mill 1 bearing inspection — Ait Baha</div>
+            <div class="rec-desc">Vibration sensor on Mill 1 main bearing shows a pattern that has preceded bearing failure in 87% of similar cases. Predicted time to failure: 12–18 days. Scheduled inspection and replacement will cost ~80,000 DH vs. emergency stop cost of ~4.2M DH.</div>
+            <div class="rec-saving">Prevents ~4.2M DH emergency stop · Confidence: 87%</div>
+            <div class="rec-btns">
+              <button class="btn-apply" onclick="applyRec2(3)">Create work order</button>
+              <button class="btn-skip" onclick="skipRec2(3)">Dismiss</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-hd"><div class="card-ttl">Recommendation stats</div></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:12px;color:var(--text2)">Accepted this week</span>
+              <span style="font-size:13px;font-weight:500;color:var(--green)">23 / 26</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:12px;color:var(--text2)">Avg. confidence score</span>
+              <span style="font-size:13px;font-weight:500;color:var(--blue)">93.2%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:12px;color:var(--text2)">Savings from accepted recs</span>
+              <span style="font-size:13px;font-weight:500;color:var(--green)">1.4M DH</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+              <span style="font-size:12px;color:var(--text2)">Days in advisory mode</span>
+              <span style="font-size:13px;font-weight:500;color:var(--text)">74 days</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div class="card-ttl">Mode progress</div><div class="card-sub">Path to autonomous control</div></div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">74 days in advisory mode. Operator acceptance at 94%. Target for autonomous upgrade: 90% over 90 days.</div>
+          <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:6px">
+            <div style="width:82%;height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:3px"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3)">
+            <span>Day 1 — Advisory</span>
+            <span style="color:var(--green)">82% to autonomous</span>
+            <span>Day 90</span>
+          </div>
+          <div style="margin-top:14px;padding:12px;background:var(--green-dim);border:1px solid rgba(34,214,122,0.2);border-radius:var(--radius-sm)">
+            <div style="font-size:11px;font-weight:500;color:var(--green)">Estimated autonomous unlock: in 16 days</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:3px">At current acceptance rate of 94%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ GRINDING PAGE ═══ -->
+  <section class="page" id="page-grinding">
+    <div class="kpi-strip">
+      <div class="kpi c-green"><div class="kpi-lbl">Mill 1 consumption</div><div class="kpi-val">30.8<sub>kWh/t</sub></div><div class="kpi-delta delta-up">↓ 16.2% vs baseline</div><div class="kpi-track"><div class="kpi-track-fill" style="width:80%;background:var(--green)"></div></div></div>
+      <div class="kpi c-blue"><div class="kpi-lbl">Mill 2 consumption</div><div class="kpi-val">32.1<sub>kWh/t</sub></div><div class="kpi-delta delta-up">↓ 12.8% vs baseline</div><div class="kpi-track"><div class="kpi-track-fill" style="width:75%;background:var(--blue)"></div></div></div>
+      <div class="kpi c-amber"><div class="kpi-lbl">Avg. particle size (D90)</div><div class="kpi-val">32.4<sub>μm</sub></div><div class="kpi-delta delta-neutral">Within spec ✓</div><div class="kpi-track"><div class="kpi-track-fill" style="width:65%;background:var(--amber)"></div></div></div>
+      <div class="kpi c-purple"><div class="kpi-lbl">Peak tariff avoidance</div><div class="kpi-val">68<sub>%</sub></div><div class="kpi-delta delta-up">↑ load shifted off-peak</div><div class="kpi-track"><div class="kpi-track-fill" style="width:68%;background:var(--purple)"></div></div></div>
+    </div>
+    <div class="grid-60-40">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-ttl">Mill electricity — 24hr profile</div><div class="card-sub">kWh/t · with AI load shifting</div></div><span class="tag green">Peak avoided</span></div>
+        <div class="chart-wrap" style="height:190px"><canvas id="millChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="card-ttl">Mill 2 — Tonight's schedule</div><div class="card-sub">AI-optimized for off-peak tariff</div></div>
+        <div class="schedule-row">
+          <div class="schedule-time">18:00–22:00</div>
+          <div class="schedule-bar-wrap"><div class="schedule-bar-fill" style="width:30%;background:var(--amber)"></div></div>
+          <div class="schedule-action" style="color:var(--amber)">Reduced load</div>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-time">22:00–23:00</div>
+          <div class="schedule-bar-wrap"><div class="schedule-bar-fill" style="width:5%;background:var(--red)"></div></div>
+          <div class="schedule-action" style="color:var(--red)">Peak tariff — off</div>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-time">23:00–02:00</div>
+          <div class="schedule-bar-wrap"><div class="schedule-bar-fill" style="width:100%;background:var(--green)"></div></div>
+          <div class="schedule-action" style="color:var(--green)">Full load — wind peak</div>
+        </div>
+        <div class="schedule-row">
+          <div class="schedule-time">02:00–06:00</div>
+          <div class="schedule-bar-wrap"><div class="schedule-bar-fill" style="width:70%;background:var(--blue)"></div></div>
+          <div class="schedule-action" style="color:var(--blue)">Normal load</div>
+        </div>
+        <div style="margin-top:14px;padding:12px;background:var(--green-dim);border:1px solid rgba(34,214,122,0.2);border-radius:var(--radius-sm)">
+          <div style="font-size:12px;font-weight:500;color:var(--green)">Tonight's tariff saving: 14,200 DH</div>
+          <div style="font-size:10px;color:var(--text2);margin-top:3px">800t grinding shifted to off-peak window</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ MAINTENANCE PAGE ═══ -->
+  <section class="page" id="page-maintenance">
+    <div class="grid-3">
+      <div class="maint-card" style="border-color:rgba(255,77,77,0.25)">
+        <div class="maint-card-head">
+          <div><div class="maint-card-ttl">Mill 1 — Main Bearing</div><div class="maint-card-loc">Ait Baha · Vibration anomaly detected</div></div>
+          <span class="tag red">Urgent · 12 days</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Vibration signature matches pre-failure pattern in 87% of historical cases. Scheduled replacement: 80K DH vs emergency: 4.2M DH.</div>
+        <div class="rul-bar"><div class="rul-fill" style="width:75%;background:var(--red)"></div></div>
+        <div class="rul-labels"><span>Healthy</span><span style="color:var(--red)">Failure predicted day 12–18</span></div>
+        <div class="sensor-grid">
+          <div class="sensor-cell"><div class="sensor-lbl">Vibration RMS</div><div class="sensor-val" style="color:var(--red)">4.2 mm/s</div></div>
+          <div class="sensor-cell"><div class="sensor-lbl">Bearing temp</div><div class="sensor-val" style="color:var(--amber)">68°C</div></div>
+          <div class="sensor-cell"><div class="sensor-lbl">Trend</div><div class="sensor-val" style="color:var(--red)">↑ +0.3/day</div></div>
+        </div>
+      </div>
+
+      <div class="maint-card" style="border-color:rgba(245,166,35,0.25)">
+        <div class="maint-card-head">
+          <div><div class="maint-card-ttl">Kiln 2 — Refractory Lining</div><div class="maint-card-loc">Safi · Shell temperature trending up</div></div>
+          <span class="tag amber">Monitor · 28 days</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Shell temperature scanner showing gradual hot spot development in Zone 4. Not critical yet but trending. Plan inspection during next scheduled stop.</div>
+        <div class="rul-bar"><div class="rul-fill" style="width:40%;background:var(--amber)"></div></div>
+        <div class="rul-labels"><span>Healthy</span><span style="color:var(--amber)">Monitor — day 28</span></div>
+        <div class="sensor-grid">
+          <div class="sensor-cell"><div class="sensor-lbl">Shell temp</div><div class="sensor-val" style="color:var(--amber)">312°C</div></div>
+          <div class="sensor-cell"><div class="sensor-lbl">Zone</div><div class="sensor-val">Zone 4</div></div>
+          <div class="sensor-cell"><div class="sensor-lbl">Trend</div><div class="sensor-val" style="color:var(--amber)">↑ slow</div></div>
+        </div>
+      </div>
+
+      <div class="maint-card">
+        <div class="maint-card-head">
+          <div><div class="maint-card-ttl">Crusher — Liner Replacement</div><div class="maint-card-loc">Ait Baha · Scheduled maintenance</div></div>
+          <span class="tag green">Scheduled · 45 days</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Wear measurement within normal range. Liner replacement already scheduled. AI confirms timing is appropriate — no urgency to advance.</div>
+        <div class="rul-bar"><div class="rul-fill" style="width:18%;background:var(--green)"></div></div>
+        <div class="rul-labels"><span>Healthy</span><span style="color:var(--green)">Normal wear — day 45</span></div>
+        <div class="sensor-grid">
+          <div class="sensor-cell"><div class="sensor-lbl">Wear index</div><div class="sensor-val" style="color:var(--green)">42%</div></div>
+          <div class="sensor-cell"><div class="sensor-lbl">Vibration</div><div class="sensor-val">1.1 mm/s</div></div>
+          <div class="sensor-cell"><div class="sensor-lbl">Status</div><div class="sensor-val" style="color:var(--green)">Normal</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-hd"><div class="card-ttl">Monthly maintenance impact</div></div>
+        <div class="chart-wrap" style="height:160px"><canvas id="maintChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="card-ttl">This month's impact</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:#f0f5f1;border-radius:var(--radius-sm);padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:500;color:var(--green)">3</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">Unplanned stops prevented</div>
+          </div>
+          <div style="background:#f0f5f1;border-radius:var(--radius-sm);padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:500;color:var(--green)">4.2M DH</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">Emergency costs avoided</div>
+          </div>
+          <div style="background:#f0f5f1;border-radius:var(--radius-sm);padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:500;color:var(--blue)">14</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">Assets monitored</div>
+          </div>
+          <div style="background:#f0f5f1;border-radius:var(--radius-sm);padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:500;color:var(--amber)">98.7%</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">Prediction accuracy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RENEWABLE PAGE ═══ -->
+  <section class="page" id="page-renewable">
+    <div class="kpi-strip">
+      <div class="kpi c-green"><div class="kpi-lbl">Renewable share today</div><div class="kpi-val">32<sub>%</sub></div><div class="kpi-delta delta-up">↑ from 24% last month</div><div class="kpi-track"><div class="kpi-track-fill" style="width:32%;background:var(--green)"></div></div></div>
+      <div class="kpi c-blue"><div class="kpi-lbl">Wind generation (Laayoune)</div><div class="kpi-val">4.2<sub>MW</sub></div><div class="kpi-delta delta-neutral">of 5 MW capacity</div><div class="kpi-track"><div class="kpi-track-fill" style="width:84%;background:var(--blue)"></div></div></div>
+      <div class="kpi c-amber"><div class="kpi-lbl">Solar generation (Ait Baha)</div><div class="kpi-val">1.7<sub>MW</sub></div><div class="kpi-delta delta-neutral">of 2 MW capacity</div><div class="kpi-track"><div class="kpi-track-fill" style="width:85%;background:var(--amber)"></div></div></div>
+      <div class="kpi c-purple"><div class="kpi-lbl">Tariff cost avoided</div><div class="kpi-val">6.8M<sub>DH YTD</sub></div><div class="kpi-delta delta-up">↑ off-peak scheduling</div><div class="kpi-track"><div class="kpi-track-fill" style="width:70%;background:var(--purple)"></div></div></div>
+    </div>
+    <div class="grid-60-40">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-ttl">48-hour wind & solar forecast</div><div class="card-sub">Laayoune wind park + Ait Baha CSP</div></div><span class="tag blue">AI-generated</span></div>
+        <div class="chart-wrap" style="height:200px"><canvas id="renewChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="card-ttl">AI scheduling insights</div></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="padding:12px;background:var(--green-dim);border:1px solid rgba(34,214,122,0.2);border-radius:var(--radius-sm)">
+            <div style="font-size:12px;font-weight:500;color:var(--green)">Tonight — strong winds 18–23 m/s</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:3px">Schedule all heavy grinding 23:00–02:00. Est. saving: 14,200 DH.</div>
+          </div>
+          <div style="padding:12px;background:var(--amber-dim);border:1px solid rgba(245,166,35,0.2);border-radius:var(--radius-sm)">
+            <div style="font-size:12px;font-weight:500;color:var(--amber)">Tomorrow — low solar forecast</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:3px">Cloud cover expected. Shift solar-dependent operations. Grid backup from 10:00–15:00.</div>
+          </div>
+          <div style="padding:12px;background:var(--blue-dim);border:1px solid rgba(59,127,255,0.2);border-radius:var(--radius-sm)">
+            <div style="font-size:12px;font-weight:500;color:var(--blue)">This week — Aftissat wind strong</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:3px">Aftissat farm 200 MW supplying well. Recommend deferring any ONEE grid purchases.</div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);padding-top:6px;border-top:1px solid var(--border)">
+            Forecast accuracy last 30 days: <span style="color:var(--green)">94.2%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SAVINGS PAGE ═══ -->
+  <section class="page" id="page-savings">
+    <div class="card" style="padding:28px 28px 20px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px">
+        <div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Year-to-date savings</div>
+          <div style="font-size:48px;font-weight:300;color:var(--green);font-family:var(--font-mono);line-height:1">36.4M DH</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:8px">Q1 2026 · On track for 72M DH annual target · Payback in 2.1 years</div>
+        </div>
+        <span class="tag green" style="font-size:12px;padding:6px 14px">On track ✓</span>
+      </div>
+      <div class="chart-wrap" style="height:200px"><canvas id="savingsChart"></canvas></div>
+    </div>
+    <div class="savings-grid" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+      <div class="saving-cell"><div class="saving-lbl">Fuel savings (kiln AI)</div><div class="saving-val" style="font-size:24px">18.4M</div><div class="saving-sub">DH saved Q1 2026</div></div>
+      <div class="saving-cell"><div class="saving-lbl">Electricity (mill AI)</div><div class="saving-val" style="font-size:24px">11.2M</div><div class="saving-sub">DH saved Q1 2026</div></div>
+      <div class="saving-cell"><div class="saving-lbl">Maintenance avoided</div><div class="saving-val" style="font-size:24px">6.8M</div><div class="saving-sub">DH saved Q1 2026</div></div>
+      <div class="saving-cell" style="border-color:rgba(34,214,122,0.3)"><div class="saving-lbl">CO₂ credits value</div><div class="saving-val" style="font-size:24px;color:var(--green)">+3.2M</div><div class="saving-sub">DH carbon market value</div></div>
+    </div>
+  </section>
+
+</div><!-- .main -->
+</div><!-- .app -->
+
+<script>
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  const opts = { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false };
+  document.getElementById('clock').textContent = now.toLocaleDateString('en-GB', opts).replace(',','·');
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ── LIVE KPI FLICKER ──
+function flicker(id, base, range, dec) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const v = (base + (Math.random()-0.5)*range);
+  el.textContent = dec ? v.toFixed(1) : Math.round(v).toLocaleString();
+}
+setInterval(() => {
+  flicker('kv-heat', 724, 8, false);
+  flicker('kv-elec', 31.4, 0.6, true);
+  flicker('kv-tsr', 28.3, 0.4, true);
+  flicker('kv-co2', 581, 4, false);
+  const temps = ['1,445°C','1,446°C','1,447°C','1,448°C','1,447°C'];
+  const te = document.getElementById('kiln-temp');
+  if (te) te.textContent = temps[Math.floor(Math.random()*temps.length)];
+}, 3000);
+
+// ── NAVIGATION ──
+let pendingCount = 4;
+function navigate(pageId, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {
+    dashboard: ['Live Overview', '— Ait Baha · Safi · Mzoudia · Témara'],
+    kiln: ['Kiln Optimizer', '— Ait Baha · Kiln 1 & 2'],
+    grinding: ['Mill Optimizer', '— Electrical energy optimization'],
+    maintenance: ['Predictive Maintenance', '— All plants · AI failure forecasting'],
+    renewable: ['Renewable Scheduler', '— Wind · Solar · Grid optimization'],
+    recommendations: ['AI Recommendations', '— Pending operator approval'],
+    savings: ['Savings Report', '— Q1 2026 · Year-to-date impact'],
+  };
+  document.getElementById('page-title').childNodes[0].textContent = titles[pageId][0] + ' ';
+  document.getElementById('page-sub').textContent = titles[pageId][1];
+  setTimeout(initCharts, 100);
+}
+
+// ── PLANT CYCLE ──
+const plants = ['All Plants','Ait Baha','Safi','Mzoudia','Témara'];
+let pi = 0;
+function cyclePlant() { pi = (pi+1)%plants.length; document.getElementById('active-plant').textContent = plants[pi]; }
+
+// ── MODE INFO ──
+function showModeInfo() { alert('Advisory Mode: The AI generates recommendations. Your operators review and apply each one manually.\n\nAutonomous Mode (unlocks in ~16 days at current acceptance rate): The AI adjusts parameters automatically within predefined safe limits. Operators monitor and can override instantly.'); }
+
+// ── RECOMMENDATIONS ──
+function applyRec(i) {
+  const rec = document.getElementById('rec-'+i);
+  if (!rec) return;
+  const btns = rec.querySelector('.rec-btns');
+  btns.innerHTML = '<span class="btn-applied">✓ Applied</span>';
+  updateCount();
+}
+function skipRec(i) {
+  const rec = document.getElementById('rec-'+i);
+  if (rec) { rec.style.opacity='0.4'; rec.querySelector('.rec-btns').innerHTML='<span style="font-size:11px;color:var(--text3)">Skipped</span>'; }
+  updateCount();
+}
+function applyRec2(i) {
+  const rec = document.getElementById('rec2-'+i);
+  if (!rec) return;
+  const btns = rec.querySelector('.rec-btns');
+  btns.innerHTML = '<span class="btn-applied">✓ Applied</span>';
+  updateCount();
+}
+function skipRec2(i) {
+  const rec = document.getElementById('rec2-'+i);
+  if (rec) { rec.style.opacity='0.4'; rec.querySelector('.rec-btns').innerHTML='<span style="font-size:11px;color:var(--text3)">Skipped</span>'; }
+  updateCount();
+}
+function updateCount() {
+  pendingCount = Math.max(0, pendingCount-1);
+  ['rec-count','rec-tag','rec-tag2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = pendingCount + (pendingCount===1?' pending':' pending');
+  });
+}
+
+// ── CHARTS ──
+let charts = {};
+function initCharts() {
+  const pg = document.querySelector('.page.active').id;
+
+  if (pg==='page-dashboard' && !charts.energy) {
+    const hrs = Array.from({length:24},(_,i)=>i+':00');
+    const base = [820,815,810,808,805,802,800,798,795,790,785,780,778,775,772,770,768,765,760,758,755,752,748,745];
+    charts.energy = new Chart(document.getElementById('energyChart'), {
+      type:'line',
+      data:{ labels:hrs, datasets:[
+        {label:'Actual',data:base,borderColor:'#16a34a',backgroundColor:'rgba(59,127,255,0.08)',fill:true,tension:0.4,pointRadius:0,borderWidth:2},
+        {label:'AI target',data:base.map(v=>v-30),borderColor:'#22d67a',borderDash:[5,3],fill:false,tension:0.4,pointRadius:0,borderWidth:1.5}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a6350',font:{size:10},maxTicksLimit:8},grid:{color:'rgba(0,0,0,0.06)'}},y:{ticks:{color:'#4a6350',font:{size:10}},grid:{color:'rgba(0,0,0,0.06)'}}}}
+    });
+  }
+
+  if (pg==='page-kiln' && !charts.kiln) {
+    const pts = Array.from({length:16},(_,i)=>(Math.random()*20+714).toFixed(1));
+    charts.kiln = new Chart(document.getElementById('kilnChart'), {
+      type:'line',
+      data:{labels:Array.from({length:16},(_,i)=>i*30+'min'),datasets:[
+        {label:'kcal/kg',data:pts,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.08)',fill:true,tension:0.4,pointRadius:0,borderWidth:2}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a6350',font:{size:9},maxTicksLimit:6},grid:{color:'rgba(0,0,0,0.06)'}},y:{ticks:{color:'#4a6350',font:{size:9}},grid:{color:'rgba(0,0,0,0.06)'}}}}
+    });
+  }
+
+  if (pg==='page-grinding' && !charts.mill) {
+    const hrs24 = Array.from({length:24},(_,i)=>i);
+    const millData = hrs24.map(h => (h>=22&&h<=23)?5:(h>=23||h<=2)?38:30+(Math.random()*4));
+    charts.mill = new Chart(document.getElementById('millChart'), {
+      type:'bar',
+      data:{labels:hrs24.map(h=>h+':00'),datasets:[
+        {label:'kWh/t',data:millData,backgroundColor:hrs24.map(h=>(h>=22&&h<=23)?'rgba(255,77,77,0.5)':(h>=23||h<=2)?'rgba(34,214,122,0.5)':'rgba(59,127,255,0.4)'),borderRadius:3}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a6350',font:{size:9},maxTicksLimit:12},grid:{display:false}},y:{ticks:{color:'#4a6350',font:{size:9}},grid:{color:'rgba(0,0,0,0.06)'}}}}
+    });
+  }
+
+  if (pg==='page-maintenance' && !charts.maint) {
+    charts.maint = new Chart(document.getElementById('maintChart'), {
+      type:'bar',
+      data:{labels:['Oct','Nov','Dec','Jan','Feb','Mar'],datasets:[
+        {label:'Avoided cost (M DH)',data:[1.2,0.8,2.1,1.5,3.4,4.2],backgroundColor:'rgba(34,214,122,0.5)',borderRadius:4}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a6350',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#4a6350',font:{size:10}},grid:{color:'rgba(0,0,0,0.06)'}}}}
+    });
+  }
+
+  if (pg==='page-renewable' && !charts.renew) {
+    const h48 = Array.from({length:48},(_,i)=>(i%24)+':00');
+    charts.renew = new Chart(document.getElementById('renewChart'), {
+      type:'line',
+      data:{labels:h48,datasets:[
+        {label:'Wind (MW)',data:Array.from({length:48},(_,i)=>(2+Math.sin(i/3)*1.5+Math.random()*0.5).toFixed(2)),borderColor:'#22d67a',fill:false,tension:0.4,pointRadius:0,borderWidth:2},
+        {label:'Solar (MW)',data:Array.from({length:48},(_,i)=>{const h=i%24;return h>=6&&h<=18?(Math.sin((h-6)/12*Math.PI)*1.8+Math.random()*0.2).toFixed(2):0;}),borderColor:'#f5a623',fill:false,tension:0.4,pointRadius:0,borderWidth:2}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a6350',font:{size:9},maxTicksLimit:12},grid:{color:'rgba(0,0,0,0.06)'}},y:{ticks:{color:'#4a6350',font:{size:9}},grid:{color:'rgba(0,0,0,0.06)'}}}}
+    });
+  }
+
+  if (pg==='page-savings' && !charts.savings) {
+    charts.savings = new Chart(document.getElementById('savingsChart'), {
+      type:'line',
+      data:{labels:['Oct','Nov','Dec','Jan','Feb','Mar'],datasets:[
+        {label:'Cumulative savings (M DH)',data:[4.2,9.8,16.1,22.8,29.3,36.4],borderColor:'#22d67a',backgroundColor:'rgba(34,214,122,0.08)',fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:'#22d67a',borderWidth:2},
+        {label:'Target trajectory',data:[5,10,15,20,25,30],borderColor:'rgba(59,127,255,0.4)',borderDash:[5,3],fill:false,tension:0.3,pointRadius:0,borderWidth:1.5}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4a6350',font:{size:11}},grid:{color:'rgba(0,0,0,0.06)'}},y:{ticks:{color:'#4a6350',font:{size:10},callback:v=>v+'M'},grid:{color:'rgba(0,0,0,0.06)'}}}}
+    });
+  }
+}
+
+initCharts();
+</script>
+</body>
+</html>
